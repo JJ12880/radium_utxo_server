@@ -1,0 +1,188 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Net;
+using System.IO;
+using Newtonsoft.Json.Linq;
+using System.Collections.ObjectModel;
+
+namespace Radium_utxo_server
+
+{
+    internal static class Vars
+    {
+        public static string server_version = "92";
+
+
+
+        public static ConfigFileReader config = new ConfigFileReader();
+        public static DateTime stats_update = DateTime.Now;
+
+        public static bool wallet_connected = false;
+
+
+        public static Collection<utxo> utxos = new Collection<utxo>();
+        private static int SyncHeight = 1;
+
+        public static Thread SyncThread = new Thread(new ThreadStart(Sync));
+        
+        private static void Sync()
+        {
+            LoadSaved();
+
+           BitnetClient bcMain = new BitnetClient();
+           
+            bcMain.Credentials = new NetworkCredential(config.lookup("rpc_user"), config.lookup("rpc_pass"));
+            bcMain.Url = new Uri("http://" + config.lookup("rpc_ip") + ":" + config.lookup("rpc_port"));
+
+
+
+
+
+            
+            int highestnetworkblock = 0;
+           
+            //  Dim Synced As Boolean = False
+
+          
+
+          
+           
+
+            highestnetworkblock = bcMain.GetBlockCount();
+            if (SyncHeight == highestnetworkblock)
+                {Thread.Sleep(6); }
+            for (int curblock = SyncHeight; curblock <= highestnetworkblock; curblock++)
+            {
+                Console.WriteLine("syncing block " + curblock + "utxo count " + utxos.Count());
+                JObject BlockChainBlock = default(JObject);
+                JToken transaction = default(JToken);
+                BlockChainBlock = bcMain.TryInvokeMethod("getblockbynumber", curblock);
+                JArray txarray = (JArray)BlockChainBlock["result"]["tx"];
+                foreach (JToken txid in BlockChainBlock["result"]["tx"])
+                {
+                    transaction = bcMain.TryInvokeMethod("gettransaction", txid)["result"];
+                   
+                    foreach (JToken vin in transaction["vin"]){
+                        if (vin["coinbase"] != null) { continue; }
+                        utxos.Remove(utxos.SingleOrDefault(i => i.txid == (string)vin["txid"] && i.index == (int)vin["vout"]));
+
+                    }
+                    foreach (JToken vout in transaction["vout"])
+                    {
+                        if((decimal)vout["value"] == 0) { continue; }
+                      
+                        utxos.Add(new utxo((string)txid, (int)vout["n"], (decimal)vout["value"], (string)vout["scriptPubKey"]["addresses"][0]));
+
+                    }
+                
+                }
+
+
+                SyncHeight = curblock;
+                if (curblock % 100 == 1)
+                {
+                    Save(utxos, SyncHeight);
+                }
+
+                    SyncHeight = curblock;
+            }
+
+                //ObservableCollection<User> TempSmartChainAccounts = GetMySmartChainAccounts(ref bcSync);
+
+              
+
+               
+            }
+
+           
+           
+
+
+
+        
+
+
+
+
+
+
+
+        public static void Save(Collection<utxo> _utxos, int _SyncHeight)
+        {
+            SaveFile savedstate = new SaveFile
+            {
+                sync_height = _SyncHeight,
+                utxos = _utxos,
+               
+            };
+
+            string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData) + "\\utxo_server";
+
+            if ((!System.IO.Directory.Exists(path)))
+                System.IO.Directory.CreateDirectory(path);
+
+            FileStream SaveDataFilestream = new FileStream(path + "\\utxos.sc", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+          
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            try
+            {
+                bf.Serialize(SaveDataFilestream, savedstate);               
+            }
+            catch (Exception ex1)
+            {
+                throw ex1;
+            }
+
+            SaveDataFilestream.Close();
+
+            Console.WriteLine("sucessfully wrote save data");
+          
+            return;
+        }
+
+        public static void LoadSaved()
+        {
+            
+
+            string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData) + "\\utxo_server";
+
+            if ((!System.IO.Directory.Exists(path)))
+                System.IO.Directory.CreateDirectory(path);
+
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bf = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+
+            if (File.Exists(path + "\\utxos.sc"))
+            {
+                FileStream DataFileStream = new FileStream(path + "\\utxos.sc", FileMode.Open);
+                try
+                {
+                   SaveFile save  = (SaveFile)bf.Deserialize(DataFileStream);
+                    utxos = save.utxos;
+                    SyncHeight = save.sync_height;
+
+                    DataFileStream.Close();
+                }
+                catch (Exception ex)
+                {
+                    DataFileStream.Close();
+                }
+            }
+
+          
+               
+           
+            //End If
+
+        }
+
+    }
+       
+           
+    
+
+
+}
