@@ -74,8 +74,9 @@ namespace Radium_utxo_server
                     foreach (JToken vout in transaction["vout"])
                     {
                         if((decimal)vout["value"] == 0) { continue; }
+                        if( (string)vout["scriptPubKey"]["type"] == "nulldata") { continue; }
 
-                        if( utxos.Any(i => i.txid == (string)txid && i.index == (int)vout["n"])) 
+                        if ( utxos.Any(i => i.txid == (string)txid && i.index == (int)vout["n"])) 
                         {
                             continue;
                         }
