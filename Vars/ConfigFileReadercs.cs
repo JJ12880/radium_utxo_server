@@ -11,7 +11,7 @@ namespace Radium_utxo_server
         public ConfigFileReader()
         {
             string path = Directory.GetCurrentDirectory().ToString() + "\\config.conf";
-
+            Console.WriteLine("Reading config from  " + path);
             if (!File.Exists(path))
                 return;
             using (StreamReader sr = new StreamReader(path))

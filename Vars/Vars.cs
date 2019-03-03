@@ -74,7 +74,12 @@ namespace Radium_utxo_server
                     foreach (JToken vout in transaction["vout"])
                     {
                         if((decimal)vout["value"] == 0) { continue; }
-                      
+
+                        if( utxos.Any(i => i.txid == (string)txid && i.index == (int)vout["n"])) 
+                        {
+                            continue;
+                        }
+
                         utxos.Add(new utxo((string)txid, (int)vout["n"], (decimal)vout["value"], (string)vout["scriptPubKey"]["addresses"][0]));
 
                     }

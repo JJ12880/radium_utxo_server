@@ -25,7 +25,10 @@ namespace Radium_utxo_server
         public JObject TryInvokeMethod(string a_sMethod, params object[] a_params)
         {
             try { return InvokeMethod(a_sMethod, a_params); }
-            catch { return InvokeMethod(a_sMethod, a_params); }
+            catch {
+                Console.WriteLine("retry invoke method " + a_sMethod + " " + (string)a_params[0].ToString());
+                return TryInvokeMethod(a_sMethod, a_params);
+            }
         }
 
         public JObject InvokeMethod(string a_sMethod, params object[] a_params)
