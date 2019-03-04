@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -75,6 +75,9 @@ namespace Radium_utxo_server
                     {
                         if((decimal)vout["value"] == 0) { continue; }
                         if( (string)vout["scriptPubKey"]["type"] == "nulldata") { continue; }
+                        if ((string)vout["scriptPubKey"]["type"] == "nonstandard") {
+                            continue;
+                        }
 
                         if ( utxos.Any(i => i.txid == (string)txid && i.index == (int)vout["n"])) 
                         {
