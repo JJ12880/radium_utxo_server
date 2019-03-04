@@ -74,7 +74,8 @@ namespace Radium_utxo_server
                     foreach (JToken vout in transaction["vout"])
                     {
                         if((decimal)vout["value"] == 0) { continue; }
-                        if( (string)vout["scriptPubKey"]["type"] == "nulldata") { continue; }
+                        if ((double)vout["value"] < .00001) { continue; }
+                        if ((string)vout["scriptPubKey"]["type"] == "nulldata") { continue; }
                         if ((string)vout["scriptPubKey"]["type"] == "nonstandard") {
                             continue;
                         }
