@@ -55,7 +55,10 @@ namespace Radium_utxo_server
             highestnetworkblock = bcMain.GetBlockCount();
 
             if (SyncHeight == highestnetworkblock)
-                {Thread.Sleep(6); }
+                {
+                    Thread.Sleep(6000);
+                    continue;
+                }
             for (int curblock = SyncHeight; curblock <= highestnetworkblock; curblock++)
             {
                 Console.WriteLine("syncing block " + curblock + "utxo count " + utxos.Count());
