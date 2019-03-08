@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,15 +44,16 @@ namespace Radium_utxo_server
 
             
             int highestnetworkblock = 0;
-           
+
             //  Dim Synced As Boolean = False
 
-          
 
-          
-           
 
+
+
+            while (true) {
             highestnetworkblock = bcMain.GetBlockCount();
+
             if (SyncHeight == highestnetworkblock)
                 {Thread.Sleep(6); }
             for (int curblock = SyncHeight; curblock <= highestnetworkblock; curblock++)
@@ -100,13 +101,13 @@ namespace Radium_utxo_server
 
                     SyncHeight = curblock;
             }
+            };
+            //ObservableCollection<User> TempSmartChainAccounts = GetMySmartChainAccounts(ref bcSync);
 
-                //ObservableCollection<User> TempSmartChainAccounts = GetMySmartChainAccounts(ref bcSync);
 
-              
 
-               
-            }
+
+        }
 
            
            
